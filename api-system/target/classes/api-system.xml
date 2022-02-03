@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="dbf2e8d1-a121-4c53-a9af-6b9a40ce9e9c" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="aa30efab-0fd5-4897-a717-c82c6e88051a" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="Lavanya@22" database="mule4" />
+	</db:config>
+	<flow name="api-systemFlow" doc:id="9f060018-94f7-4207-b75f-27a9e311779b" >
+		<http:listener doc:name="Listener  POST 8081/system" doc:id="109b1a3c-86fa-45ea-ac60-9b3039741199" config-ref="HTTP_Listener_config" path="system" allowedMethods="POST"/>
+		<logger level="INFO" doc:name="Logger" doc:id="5c9958fb-1c0e-4c40-b1ef-51f3d6eceb18" message="** System Layer - Started **#[payload]"/>
+		<flow-ref doc:name="Flow Reference" doc:id="689a433d-0ccd-4c9f-8a0b-4b7457e1e99c" name="db"/>
+		<logger level="INFO" doc:name="payload" doc:id="7ae73a36-772b-45f1-b1ec-e31f7f3c15a1" message="#[payload]"/>
+	</flow>
+	<sub-flow name="db" doc:id="033357b3-f344-4fc0-b90d-e4cb359b498f" >
+		<parallel-foreach doc:name="Parallel For Each" doc:id="bc8695bb-76a6-437c-b1bf-541e711878c5" >
+			<db:insert doc:name="Insert" doc:id="a7b3cd84-7ffb-4666-91a9-5001d3854813" config-ref="Database_Config">
+			<db:sql><![CDATA[insert into emp_table values(:id,:name,:dept)]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+	id:payload.id,
+	name:payload.name,
+	dept:payload.dept
+}]]]></db:input-parameters>
+		</db:insert>
+		</parallel-foreach>
+	</sub-flow>
+</mule>
